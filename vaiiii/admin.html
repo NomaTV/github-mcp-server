@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NomaTV - Painel Administrativo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .main-content {
+            background: #f8f9fa;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .modal-content {
+            border-radius: 15px;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .badge {
+            font-size: 0.75em;
+        }
+        .loading {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-3">
+                <h4 class="mb-4"><i class="fas fa-tv me-2"></i>NomaTV</h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#dashboard" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a class="nav-link" href="#revendedores" onclick="showSection('revendedores')"><i class="fas fa-users me-2"></i>Revendedores</a>
+                    <a class="nav-link" href="#provedores" onclick="showSection('provedores')"><i class="fas fa-server me-2"></i>Provedores</a>
+                    <a class="nav-link" href="#ativos" onclick="showSection('ativos')"><i class="fas fa-play-circle me-2"></i>Ativos</a>
+                    <a class="nav-link" href="#financeiro" onclick="showSection('financeiro')"><i class="fas fa-dollar-sign me-2"></i>Financeiro</a>
+                    <a class="nav-link" href="#logs" onclick="showSection('logs')"><i class="fas fa-history me-2"></i>Logs</a>
+                    <a class="nav-link" href="#seguranca" onclick="showSection('seguranca')"><i class="fas fa-shield-alt me-2"></i>Segurança</a>
+                    <a class="nav-link" href="#configuracoes" onclick="showSection('configuracoes')"><i class="fas fa-cogs me-2"></i>Configurações</a>
+                    <hr>
+                    <a class="nav-link" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Sair</a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content p-4">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section fade-in">
+                    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card stats-card text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-users"></i> Revendedores</h5>
+                                    <h3 id="totalRevendedores">0</h3>
+                                    <small>Ativos no sistema</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-server"></i> Provedores</h5>
+                                    <h3 id="totalProvedores">0</h3>
+                                    <small>Servidores ativos</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-play-circle"></i> Ativos</h5>
+                                    <h3 id="totalAtivos">0</h3>
+                                    <small>Clientes conectados</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-dollar-sign"></i> Receita</h5>
+                                    <h3 id="receitaTotal">R$ 0</h3>
+                                    <small>Mês atual</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts and Recent Activity -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-line me-2"></i>Atividade Recente</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="activityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-clock me-2"></i>Últimas Ações</h5>
+                                </div>
+                                <div class="card-body" id="recentActivity">
+                                    <div class="loading">Carregando...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Revendedores Section -->
+                <div id="revendedores" class="section" style="display: none;">
+                    <h2><i class="fas fa-users me-2"></i>Revendedores</h2>
+                    <div class="d-flex justify-content-between mb-3">
+                        <button class="btn btn-primary" onclick="showAddRevendedorModal()"><i class="fas fa-plus me-2"></i>Adicionar Revendedor</button>
+                        <input type="text" class="form-control w-25" id="searchRevendedores" placeholder="Buscar revendedores...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="revendedoresTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Usuário</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Ativos</th>
+                                    <th>Receita</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revendedoresTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Provedores Section -->
+                <div id="provedores" class="section" style="display: none;">
+                    <h2><i class="fas fa-server me-2"></i>Provedores</h2>
+                    <div class="d-flex justify-content-between mb-3">
+                        <button class="btn btn-primary" onclick="showAddProvedorModal()"><i class="fas fa-plus me-2"></i>Adicionar Provedor</button>
+                        <input type="text" class="form-control w-25" id="searchProvedores" placeholder="Buscar provedores...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="provedoresTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>DNS</th>
+                                    <th>Status</th>
+                                    <th>Ativos</th>
+                                    <th>Revendedor</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="provedoresTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Ativos Section -->
+                <div id="ativos" class="section" style="display: none;">
+                    <h2><i class="fas fa-play-circle me-2"></i>Ativos</h2>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <button class="btn btn-success me-2" onclick="bulkAction('activate')"><i class="fas fa-play me-2"></i>Ativar</button>
+                            <button class="btn btn-warning me-2" onclick="bulkAction('deactivate')"><i class="fas fa-pause me-2"></i>Desativar</button>
+                            <button class="btn btn-danger" onclick="bulkAction('block')"><i class="fas fa-ban me-2"></i>Bloquear</button>
+                        </div>
+                        <input type="text" class="form-control w-25" id="searchAtivos" placeholder="Buscar ativos...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="ativosTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><input type="checkbox" id="selectAllAtivos"></th>
+                                    <th>ID</th>
+                                    <th>Usuário</th>
+                                    <th>Provedor</th>
+                                    <th>Revendedor</th>
+                                    <th>Status</th>
+                                    <th>Última Atividade</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ativosTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Financeiro Section -->
+                <div id="financeiro" class="section" style="display: none;">
+                    <h2><i class="fas fa-dollar-sign me-2"></i>Financeiro</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5>Receita Total</h5>
+                                    <h3 class="text-success" id="receitaTotalFinanceiro">R$ 0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5>Pagamentos Pendentes</h5>
+                                    <h3 class="text-warning" id="pagamentosPendentes">R$ 0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5>Inadimplentes</h5>
+                                    <h3 class="text-danger" id="inadimplentes">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Histórico Financeiro</h5>
+                        </div>
+                        <div class="card-body" id="historicoFinanceiro">
+                            <div class="loading">Carregando dados financeiros...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs Section -->
+                <div id="logs" class="section" style="display: none;">
+                    <h2><i class="fas fa-history me-2"></i>Logs de Atividade</h2>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <select class="form-select w-auto me-2" id="logActionFilter">
+                                <option value="">Todas as ações</option>
+                                <option value="login">Login</option>
+                                <option value="create">Criação</option>
+                                <option value="update">Atualização</option>
+                                <option value="delete">Exclusão</option>
+                            </select>
+                            <input type="date" class="form-control w-auto" id="logDateFilter">
+                        </div>
+                        <input type="text" class="form-control w-25" id="searchLogs" placeholder="Buscar logs...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="logsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Ação</th>
+                                    <th>Detalhes</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Segurança Section -->
+                <div id="seguranca" class="section" style="display: none;">
+                    <h2><i class="fas fa-shield-alt me-2"></i>Segurança</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5>Alterar Senha</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="changePasswordForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Senha Atual</label>
+                                            <input type="password" class="form-control" id="currentPassword" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nova Senha</label>
+                                            <input type="password" class="form-control" id="newPassword" required>
+                                            <div class="form-text" id="passwordStrength"></div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Confirmar Nova Senha</label>
+                                            <input type="password" class="form-control" id="confirmPassword" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5>Informações do Servidor</h5>
+                                </div>
+                                <div class="card-body" id="serverInfo">
+                                    <div class="loading">Carregando...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Configurações Section -->
+                <div id="configuracoes" class="section" style="display: none;">
+                    <h2><i class="fas fa-cogs me-2"></i>Configurações</h2>
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Configurações Gerais</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="configForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nome do Sistema</label>
+                                            <input type="text" class="form-control" id="systemName" value="NomaTV" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Fuso Horário</label>
+                                            <select class="form-select" id="timezone" required>
+                                                <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+                                                <option value="UTC">UTC</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Idioma Padrão</label>
+                                            <select class="form-select" id="defaultLanguage" required>
+                                                <option value="pt-BR">Português (Brasil)</option>
+                                                <option value="en-US">English (US)</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Moeda Padrão</label>
+                                            <select class="form-select" id="defaultCurrency" required>
+                                                <option value="BRL">Real (R$)</option>
+                                                <option value="USD">Dólar ($)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Add/Edit Revendedor Modal -->
+    <div class="modal fade" id="revendedorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="revendedorModalTitle">Adicionar Revendedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="revendedorForm">
+                        <input type="hidden" id="revendedorId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="revendedorNome" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Usuário</label>
+                                    <input type="text" class="form-control" id="revendedorUsuario" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Senha</label>
+                                    <input type="password" class="form-control" id="revendedorSenha" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo</label>
+                                    <select class="form-select" id="revendedorTipo" required>
+                                        <option value="nao">Sub-Revendedor</option>
+                                        <option value="sim">Master</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Plano</label>
+                                    <select class="form-select" id="revendedorPlano" required>
+                                        <option value="basico">Básico</option>
+                                        <option value="premium">Premium</option>
+                                        <option value="enterprise">Enterprise</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Valor por Ativo</label>
+                                    <input type="number" step="0.01" class="form-control" id="revendedorValorAtivo">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor Mensal</label>
+                            <input type="number" step="0.01" class="form-control" id="revendedorValorMensal">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRevendedor()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Provedor Modal -->
+    <div class="modal fade" id="provedorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="provedorModalTitle">Adicionar Provedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="provedorForm">
+                        <input type="hidden" id="provedorId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="provedorNome" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">DNS</label>
+                                    <input type="text" class="form-control" id="provedorDns" placeholder="http://exemplo.com" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuário</label>
+                                    <input type="text" class="form-control" id="provedorUsuario" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Senha</label>
+                                    <input type="password" class="form-control" id="provedorSenha" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Revendedor Responsável</label>
+                            <select class="form-select" id="provedorRevendedor" required>
+                                <option value="">Selecione um revendedor</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProvedor()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="api.js"></script>
+    <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let revendedoresData = [];
+        let provedoresData = [];
+        let ativosData = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            setupEventListeners();
+        });
+        
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).style.display = 'block';
+            
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            currentSection = sectionName;
+            
+            // Load section data
+            switch(sectionName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'revendedores':
+                    loadRevendedores();
+                    break;
+                case 'provedores':
+                    loadProvedores();
+                    break;
+                case 'ativos':
+                    loadAtivos();
+                    break;
+                case 'financeiro':
+                    loadFinanceiro();
+                    break;
+                case 'logs':
+                    loadLogs();
+                    break;
+                case 'seguranca':
+                    loadSeguranca();
+                    break;
+                case 'configuracoes':
+                    loadConfiguracoes();
+                    break;
+            }
+        }
+        
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                const stats = await api.getDashboardStats();
+                document.getElementById('totalRevendedores').textContent = stats.total_revendedores || 0;
+                document.getElementById('totalProvedores').textContent = stats.total_provedores || 0;
+                document.getElementById('totalAtivos').textContent = stats.total_ativos_online || 0;
+                document.getElementById('receitaTotal').textContent = 'R$ ' + (stats.receita_estimada || 0);
+                
+                // Load activity chart
+                loadActivityChart();
+                
+                // Load recent activity
+                loadRecentActivity();
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                showAlert('Erro ao carregar dados do dashboard', 'danger');
+            }
+        }
+        
+        function loadActivityChart() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Ativos',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function loadRecentActivity() {
+            try {
+                const activity = await api.getRecentActivity();
+                const container = document.getElementById('recentActivity');
+                container.innerHTML = '';
+                
+                if (activity.length === 0) {
+                    container.innerHTML = '<p class="text-muted">Nenhuma atividade recente</p>';
+                    return;
+                }
+                
+                activity.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'd-flex justify-content-between align-items-center mb-2';
+                    div.innerHTML = `
+                        <div>
+                            <small class="text-muted">${item.timestamp}</small>
+                            <div>${item.action}</div>
+                        </div>
+                        <span class="badge bg-primary">${item.user}</span>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar atividade recente:', error);
+            }
+        }
+        
+        // Revendedores functions
+        async function loadRevendedores() {
+            try {
+                const revendedores = await api.listRevendedores();
+                revendedoresData = revendedores;
+                renderRevendedoresTable(revendedores);
+            } catch (error) {
+                console.error('Erro ao carregar revendedores:', error);
+                showAlert('Erro ao carregar revendedores', 'danger');
+            }
+        }
+        
+        function renderRevendedoresTable(revendedores) {
+            const tbody = document.getElementById('revendedoresTableBody');
+            tbody.innerHTML = '';
+            
+            if (revendedores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Nenhum revendedor encontrado</td></tr>';
+                return;
+            }
+            
+            revendedores.forEach(rev => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rev.id_revendedor}</td>
+                    <td>${rev.nome}</td>
+                    <td>${rev.usuario}</td>
+                    <td><span class="badge bg-${rev.master === 'admin' ? 'danger' : rev.master === 'sim' ? 'success' : 'secondary'}">${rev.master === 'admin' ? 'Admin' : rev.master === 'sim' ? 'Master' : 'Sub'}</span></td>
+                    <td><span class="badge bg-${rev.ativo ? 'success' : 'danger'}">${rev.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                    <td>${rev.total_ativos || 0}</td>
+                    <td>R$ ${rev.receita_estimada || 0}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editRevendedor(${rev.id_revendedor})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRevendedor(${rev.id_revendedor})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function showAddRevendedorModal() {
+            document.getElementById('revendedorModalTitle').textContent = 'Adicionar Revendedor';
+            document.getElementById('revendedorForm').reset();
+            document.getElementById('revendedorId').value = '';
+            new bootstrap.Modal(document.getElementById('revendedorModal')).show();
+        }
+        
+        function editRevendedor(id) {
+            const rev = revendedoresData.find(r => r.id_revendedor == id);
+            if (!rev) return;
+            
+            document.getElementById('revendedorModalTitle').textContent = 'Editar Revendedor';
+            document.getElementById('revendedorId').value = rev.id_revendedor;
+            document.getElementById('revendedorNome').value = rev.nome;
+            document.getElementById('revendedorUsuario').value = rev.usuario;
+            document.getElementById('revendedorTipo').value = rev.master;
+            document.getElementById('revendedorPlano').value = rev.plano;
+            document.getElementById('revendedorValorAtivo').value = rev.valor_ativo;
+            document.getElementById('revendedorValorMensal').value = rev.valor_mensal;
+            
+            new bootstrap.Modal(document.getElementById('revendedorModal')).show();
+        }
+        
+        async function saveRevendedor() {
+            const formData = {
+                id_revendedor: document.getElementById('revendedorId').value,
+                nome: document.getElementById('revendedorNome').value,
+                usuario: document.getElementById('revendedorUsuario').value,
+                senha: document.getElementById('revendedorSenha').value,
+                master: document.getElementById('revendedorTipo').value,
+                plano: document.getElementById('revendedorPlano').value,
+                valor_ativo: document.getElementById('revendedorValorAtivo').value,
+                valor_mensal: document.getElementById('revendedorValorMensal').value
+            };
+            
+            try {
+                if (formData.id_revendedor) {
+                    await api.updateRevendedor(formData);
+                    showAlert('Revendedor atualizado com sucesso', 'success');
+                } else {
+                    await api.createRevendedor(formData);
+                    showAlert('Revendedor criado com sucesso', 'success');
+                }
+                
+                bootstrap.Modal.getInstance(document.getElementById('revendedorModal')).hide();
+                loadRevendedores();
+            } catch (error) {
+                console.error('Erro ao salvar revendedor:', error);
+                showAlert('Erro ao salvar revendedor', 'danger');
+            }
+        }
+        
+        async function deleteRevendedor(id) {
+            if (!confirm('Tem certeza que deseja excluir este revendedor?')) return;
+            
+            try {
+                await api.deleteRevendedor(id);
+                showAlert('Revendedor excluído com sucesso', 'success');
+                loadRevendedores();
+            } catch (error) {
+                console.error('Erro ao excluir revendedor:', error);
+                showAlert('Erro ao excluir revendedor', 'danger');
+            }
+        }
+        
+        // Provedores functions
+        async function loadProvedores() {
+            try {
+                const provedores = await api.listProvedores();
+                provedoresData = provedores;
+                renderProvedoresTable(provedores);
+                populateRevendedorSelect();
+            } catch (error) {
+                console.error('Erro ao carregar provedores:', error);
+                showAlert('Erro ao carregar provedores', 'danger');
+            }
+        }
+        
+        function renderProvedoresTable(provedores) {
+            const tbody = document.getElementById('provedoresTableBody');
+            tbody.innerHTML = '';
+            
+            if (provedores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum provedor encontrado</td></tr>';
+                return;
+            }
+            
+            provedores.forEach(prov => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${prov.id_provedor}</td>
+                    <td>${prov.nome}</td>
+                    <td>${prov.dns}</td>
+                    <td><span class="badge bg-${prov.ativo ? 'success' : 'danger'}">${prov.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                    <td>${prov.total_ativos || 0}</td>
+                    <td>${prov.revendedor_nome || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editProvedor(${prov.id_provedor})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProvedor(${prov.id_provedor})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function showAddProvedorModal() {
+            document.getElementById('provedorModalTitle').textContent = 'Adicionar Provedor';
+            document.getElementById('provedorForm').reset();
+            document.getElementById('provedorId').value = '';
+            new bootstrap.Modal(document.getElementById('provedorModal')).show();
+        }
+        
+        function editProvedor(id) {
+            const prov = provedoresData.find(p => p.id_provedor == id);
+            if (!prov) return;
+            
+            document.getElementById('provedorModalTitle').textContent = 'Editar Provedor';
+            document.getElementById('provedorId').value = prov.id_provedor;
+            document.getElementById('provedorNome').value = prov.nome;
+            document.getElementById('provedorDns').value = prov.dns;
+            document.getElementById('provedorUsuario').value = prov.usuario;
+            document.getElementById('provedorSenha').value = prov.senha;
+            document.getElementById('provedorRevendedor').value = prov.id_revendedor;
+            
+            new bootstrap.Modal(document.getElementById('provedorModal')).show();
+        }
+        
+        async function saveProvedor() {
+            const formData = {
+                id_provedor: document.getElementById('provedorId').value,
+                nome: document.getElementById('provedorNome').value,
+                dns: document.getElementById('provedorDns').value,
+                usuario: document.getElementById('provedorUsuario').value,
+                senha: document.getElementById('provedorSenha').value,
+                id_revendedor: document.getElementById('provedorRevendedor').value
+            };
+            
+            try {
+                if (formData.id_provedor) {
+                    await api.updateProvedor(formData);
+                    showAlert('Provedor atualizado com sucesso', 'success');
+                } else {
+                    await api.createProvedor(formData);
+                    showAlert('Provedor criado com sucesso', 'success');
+                }
+                
+                bootstrap.Modal.getInstance(document.getElementById('provedorModal')).hide();
+                loadProvedores();
+            } catch (error) {
+                console.error('Erro ao salvar provedor:', error);
+                showAlert('Erro ao salvar provedor', 'danger');
+            }
+        }
+        
+        async function deleteProvedor(id) {
+            if (!confirm('Tem certeza que deseja excluir este provedor?')) return;
+            
+            try {
+                await api.deleteProvedor(id);
+                showAlert('Provedor excluído com sucesso', 'success');
+                loadProvedores();
+            } catch (error) {
+                console.error('Erro ao excluir provedor:', error);
+                showAlert('Erro ao excluir provedor', 'danger');
+            }
+        }
+        
+        async function populateRevendedorSelect() {
+            try {
+                const revendedores = await api.listRevendedores();
+                const select = document.getElementById('provedorRevendedor');
+                select.innerHTML = '<option value="">Selecione um revendedor</option>';
+                
+                revendedores.forEach(rev => {
+                    const option = document.createElement('option');
+                    option.value = rev.id_revendedor;
+                    option.textContent = rev.nome;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar revendedores:', error);
+            }
+        }
+        
+        // Ativos functions
+        async function loadAtivos() {
+            try {
+                const ativos = await api.listAtivos();
+                ativosData = ativos;
+                renderAtivosTable(ativos);
+            } catch (error) {
+                console.error('Erro ao carregar ativos:', error);
+                showAlert('Erro ao carregar ativos', 'danger');
+            }
+        }
+        
+        function renderAtivosTable(ativos) {
+            const tbody = document.getElementById('ativosTableBody');
+            tbody.innerHTML = '';
+            
+            if (ativos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Nenhum ativo encontrado</td></tr>';
+                return;
+            }
+            
+            ativos.forEach(ativo => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="ativo-checkbox" value="${ativo.client_id}"></td>
+                    <td>${ativo.client_id}</td>
+                    <td>${ativo.usuario || 'N/A'}</td>
+                    <td>${ativo.provedor_nome || 'N/A'}</td>
+                    <td>${ativo.revendedor_nome || 'N/A'}</td>
+                    <td><span class="badge bg-${ativo.ativo && !ativo.bloqueado ? 'success' : ativo.bloqueado ? 'danger' : 'warning'}">${ativo.ativo && !ativo.bloqueado ? 'Ativo' : ativo.bloqueado ? 'Bloqueado' : 'Inativo'}</span></td>
+                    <td>${ativo.ultima_atividade ? new Date(ativo.ultima_atividade).toLocaleString() : 'Nunca'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success me-1" onclick="toggleAtivo('${ativo.client_id}', true)"><i class="fas fa-play"></i></button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleAtivo('${ativo.client_id}', false)"><i class="fas fa-pause"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="blockAtivo('${ativo.client_id}')"><i class="fas fa-ban"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Setup select all checkbox
+            document.getElementById('selectAllAtivos').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.ativo-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            });
+        }
+        
+        async function toggleAtivo(clientId, activate) {
+            try {
+                await api.toggleAtivo(clientId, activate);
+                showAlert(`Ativo ${activate ? 'ativado' : 'desativado'} com sucesso`, 'success');
+                loadAtivos();
+            } catch (error) {
+                console.error('Erro ao alterar status do ativo:', error);
+                showAlert('Erro ao alterar status do ativo', 'danger');
+            }
+        }
+        
+        async function blockAtivo(clientId) {
+            try {
+                await api.blockAtivo(clientId);
+                showAlert('Ativo bloqueado com sucesso', 'success');
+                loadAtivos();
+            } catch (error) {
+                console.error('Erro ao bloquear ativo:', error);
+                showAlert('Erro ao bloquear ativo', 'danger');
+            }
+        }
+        
+        async function bulkAction(action) {
+            const selectedCheckboxes = document.querySelectorAll('.ativo-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showAlert('Selecione pelo menos um ativo', 'warning');
+                return;
+            }
+            
+            const clientIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+            
+            try {
+                await api.bulkActionAtivos(clientIds, action);
+                showAlert(`Ação aplicada a ${clientIds.length} ativos`, 'success');
+                loadAtivos();
+            } catch (error) {
+                console.error('Erro na ação em lote:', error);
+                showAlert('Erro na ação em lote', 'danger');
+            }
+        }
+        
+        // Financeiro functions
+        async function loadFinanceiro() {
+            try {
+                const financeiro = await api.getFinanceiro();
+                document.getElementById('receitaTotalFinanceiro').textContent = 'R$ ' + financeiro.receita_total;
+                document.getElementById('pagamentosPendentes').textContent = 'R$ ' + financeiro.pagamentos_pendentes;
+                document.getElementById('inadimplentes').textContent = financeiro.inadimplentes;
+                
+                renderHistoricoFinanceiro(financeiro.historico);
+            } catch (error) {
+                console.error('Erro ao carregar dados financeiros:', error);
+                showAlert('Erro ao carregar dados financeiros', 'danger');
+            }
+        }
+        
+        function renderHistoricoFinanceiro(historico) {
+            const container = document.getElementById('historicoFinanceiro');
+            container.innerHTML = '';
+            
+            if (!historico || historico.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum histórico financeiro encontrado</p>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.className = 'table table-striped';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${historico.map(item => `
+                        <tr>
+                            <td>${item.data}</td>
+                            <td>${item.descricao}</td>
+                            <td>R$ ${item.valor}</td>
+                            <td><span class="badge bg-${item.status === 'pago' ? 'success' : 'warning'}">${item.status}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            container.appendChild(table);
+        }
+        
+        // Logs functions
+        async function loadLogs() {
+            try {
+                const logs = await api.getLogs();
+                renderLogsTable(logs);
+            } catch (error) {
+                console.error('Erro ao carregar logs:', error);
+                showAlert('Erro ao carregar logs', 'danger');
+            }
+        }
+        
+        function renderLogsTable(logs) {
+            const tbody = document.getElementById('logsTableBody');
+            tbody.innerHTML = '';
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Nenhum log encontrado</td></tr>';
+                return;
+            }
+            
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.usuario}</td>
+                    <td>${log.acao}</td>
+                    <td>${log.detalhes}</td>
+                    <td>${log.ip}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Segurança functions
+        async function loadSeguranca() {
+            try {
+                const serverInfo = await api.getServerInfo();
+                renderServerInfo(serverInfo);
+            } catch (error) {
+                console.error('Erro ao carregar informações de segurança:', error);
+            }
+        }
+        
+        function renderServerInfo(info) {
+            const container = document.getElementById('serverInfo');
+            container.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>IP do Servidor:</strong> ${info.server_ip}</p>
+                        <p><strong>Versão PHP:</strong> ${info.php_version}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>SQLite:</strong> ${info.sqlite_version}</p>
+                        <p><strong>Software:</strong> ${info.server_software}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('As senhas não coincidem', 'danger');
+                return;
+            }
+            
+            try {
+                await api.changePassword(currentPassword, newPassword);
+                showAlert('Senha alterada com sucesso', 'success');
+                this.reset();
+            } catch (error) {
+                console.error('Erro ao alterar senha:', error);
+                showAlert('Erro ao alterar senha', 'danger');
+            }
+        });
+        
+        // Configurações functions
+        async function loadConfiguracoes() {
+            try {
+                const config = await api.getConfiguracoes();
+                document.getElementById('systemName').value = config.nome_sistema;
+                document.getElementById('timezone').value = config.fuso_horario;
+                document.getElementById('defaultLanguage').value = config.idioma_padrao;
+                document.getElementById('defaultCurrency').value = config.moeda_padrao;
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+        
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const configData = {
+                nome_sistema: document.getElementById('systemName').value,
+                fuso_horario: document.getElementById('timezone').value,
+                idioma_padrao: document.getElementById('defaultLanguage').value,
+                moeda_padrao: document.getElementById('defaultCurrency').value
+            };
+            
+            try {
+                await api.saveConfiguracoes(configData);
+                showAlert('Configurações salvas com sucesso', 'success');
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                showAlert('Erro ao salvar configurações', 'danger');
+            }
+        });
+        
+        // Utility functions
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchRevendedores').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filtered = revendedoresData.filter(rev => 
+                    rev.nome.toLowerCase().includes(searchTerm) || 
+                    rev.usuario.toLowerCase().includes(searchTerm)
+                );
+                renderRevendedoresTable(filtered);
+            });
+            
+            document.getElementById('searchProvedores').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filtered = provedoresData.filter(prov => 
+                    prov.nome.toLowerCase().includes(searchTerm) || 
+                    prov.dns.toLowerCase().includes(searchTerm)
+                );
+                renderProvedoresTable(filtered);
+            });
+            
+            document.getElementById('searchAtivos').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const filtered = ativosData.filter(ativo => 
+                    ativo.usuario.toLowerCase().includes(searchTerm) || 
+                    ativo.client_id.toLowerCase().includes(searchTerm)
+                );
+                renderAtivosTable(filtered);
+            });
+            
+            document.getElementById('searchLogs').addEventListener('input', function() {
+                // Implement search for logs if needed
+            });
+            
+            // Password strength checker
+            document.getElementById('newPassword').addEventListener('input', async function() {
+                const password = this.value;
+                try {
+                    const strength = await api.checkPasswordStrength(password);
+                    document.getElementById('passwordStrength').innerHTML = `
+                        <small class="text-${strength.nivel === 'Forte' ? 'success' : strength.nivel === 'Boa' ? 'warning' : 'danger'}">
+                            Força: ${strength.nivel} (${strength.score}%)
+                        </small>
+                    `;
+                } catch (error) {
+                    console.error('Erro ao verificar força da senha:', error);
+                }
+            });
+        }
+        
+        function showAlert(message, type) {
+            // Simple alert implementation
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        async function logout() {
+            try {
+                await api.logout();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
